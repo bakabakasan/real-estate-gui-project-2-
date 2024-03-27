@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DreamHouse</title>
+    {% include 'bootstrap.html' %}   
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    {% include 'banner.html' %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Полное имя</th>
+                            <th>Номер телефона</th>
+                            <th>Имейл</th>
+                            <th>Сooбщение</th>
+                            <th>Страница</th>
+                            <th>Обработано</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in database_rows %}
+                        <tr>
+                            <td>{{ row.full_name }}</td>
+                            <td>{{ row.phone_number }}</td>
+                            <td>{{ row.email }}</td>
+                            <td>{{ row.message }}</td>
+                            <td>{{ row.page_url }}</td>
+                            <td>
+                              <input type="checkbox" {% if row.processed %}checked{% endif %} disabled>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% include 'footer.html' %}
+</body>
+
+</html>

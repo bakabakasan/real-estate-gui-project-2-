@@ -1,94 +1,45 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
+import sqlite3 
 
-def create_db_engine():
-    db_connection_string = "sqlite:///database.db"
-    engine = create_engine(db_connection_string)
-    print("Connected to the database.")
-    return engine
+conn = sqlite3.connect('database.db')
+cursor = conn.cursor()
 
-def load_estate_from_db(engine): 
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT * FROM estate"))
-            rows = result.fetchall()
-            print("Fetched rows from the database:", rows)  # Debug output
-            
-        print("Query executed successfully.")
-        return rows
-    except SQLAlchemyError as e:
-        print("An error occurred while executing the query:", str(e))
-        return None
+#cursor.execute("""CREATE TABLE IF NOT EXISTS estate (
+#      id integer primary key autoincrement, 
+#      type text, 
+#      location text, 
+#     cost real, 
+#      currency text, 
+#      bedroom text, 
+#     description text, 
+#      additional_information text, 
+#      area text, 
+#      floor text)""")
 
-# Usage
-engine = create_db_engine()
-estate = load_estate_from_db(engine)
+all_estates = [
+  ('Квартира', 'Минск, Беларусь', 90000, 'USD', 2, 'Квартира с отличной планировкой, с мебелью и бытовой техникой, полностью готова к проживанию. Есть телефон, охранная сигнализация. Три окна с видом на парк.', 'Возможно оформить в кредит.', '53 кв.м.', '3 этаж'),
+  ('Квартира', 'Гродно, Беларусь', 30000, 'USD', 1, 'Уютная квартира в Гродно, в районе с развитой структурой. Рядом Вокзал и торговые центры, и остановки общественного транспорта.', '-', '32 кв.м.', '2 этаж'),
+  ('Дом', 'Витебск, Беларусь', '', 'USD', 3, 'Двухэтажный коттедж с гаражом на две машины. Участок 18 соток. Подведены все коммуникации к дому. Сделана разводка всех коммуникаций по дому.', 'Возможна оплата в кредит.', '125 кв.м.', '2 этажа'),
+  ('Дом', 'Полоцк, Беларусь', 100000, 'USD', 4, 'Дом расположен в живописном районе с развитой инфраструктурой. В районе имеется школа, сад, конный клуб, почта и продуктовые магазины.', '-', '96 кв.м.', '1 этаж')]
 
-def load_estateitem_from_db(id):
-    with engine.connect() as conn:
-        result = conn.execute(
-            text("SELECT * FROM estate WHERE id = :id"),
-            {"id": id}
-        )
-        rows = result.fetchall()
-        if len(rows) == 0:
-            return None
-        else:
-            keys = result.keys()  # Get column names
-            row_dict = dict(zip(keys, rows[0]))  # Create dictionary from tuple values
-            return row_dict
-        
-def add_message_to_db(page_url, data):
-    try:
-        with engine.connect() as conn:
-            query = text("""
-                INSERT INTO messages(full_name, phone_number, email, message, page_url) 
-                VALUES(:full_name, :phone_number, :email, :message, :page_url)""")
-            conn.execute(query, {
-                'full_name': data.get('full_name', ''),  
-                'phone_number': data.get('phone_number', ''),  
-                'email': data.get('email', ''),  
-                'message': data.get('message', ''),  
-                'page_url': page_url
-            })
-        print("Message added to the database successfully.")
-    except SQLAlchemyError as e:
-        print("An error occurred while adding the message to the database:", str(e))
-        raise  # Re-raise the exception for handling in Flask view
+cursor.executemany("INSERT INTO estate VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", all_estates)
 
-def register_form(name, email, password):
-    try:
-        with engine.connect() as conn:
-            query = text("""
-                         INSERT INTO users(name, email, password)
-                         VALUES(:name, :email, :password)""")
-            conn.execute(query, {
-                    'name': name,  
-                    'email': email,  
-                    'password': password
-                })
-            print("User was added to the database successfully.")
-    except SQLAlchemyError as e:
-            print("An error occurred while adding the user to the database:", str(e)) 
+#cursor.execute("""CREATE TABLE IF NOT EXISTS messages (
+#      id integer primary key autoincrement, 
+#      full_name text, 
+#      phone_number text, 
+#      email text, 
+#      message text, 
+#      page_url text)""")
 
-def authenticate_user(email, password):
-    try:
-        with engine.connect() as conn:
-            query = """
-                    SELECT * FROM users
-                    WHERE email = :email AND password = :password"""
-            result = conn.execute(query, {
-                'email': email,
-                'password': password
-            })
-            user = result.fetchone()
-            if user:
-                # If user found in the database, return True
-                return True
-            else:
-                # If user not found, return False
-                return False
-    except SQLAlchemyError as e:
-        print("An error occurred while authenticating user:", str(e))
-        return False     
+#cursor.execute("""CREATE TABLE IF NOT EXISTS users (
+#      id integer primary key autoincrement, 
+#      name text, 
+#      email text, 
+#      password)""")
 
+#cursor.execute("SELECT * FROM estate")
+#print(cursor.fetchall())
+
+conn.commit()
+
+conn.close()
